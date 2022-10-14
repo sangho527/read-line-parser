@@ -49,6 +49,7 @@ public class FileController<T> {
         try {
             BufferedWriter writer
                     = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+            // outputstreamwriter 한줄씩 쓰는 부분
             for (String str : lines) {
                 writer.write(str);
             }

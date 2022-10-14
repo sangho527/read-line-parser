@@ -33,6 +33,16 @@ public class Hospital {
         return sql;
     }
 
+    public String getSqlInsertQuery2() {
+        String sql = String.format("INSERT INTO `likelion-db`.`seoul_hospital`\n" +
+                        "(`id`,`address`,`district`,`category`,`emergency_room`,`name`,`subdivision`)\n"+
+                        "VALUES\n" +
+                "(\"%s\",\"%s\"," +"\"%s\"," +
+                        "\"%s\"," +"%d," +"\"%s\"," +"\"%s\");",
+                this.id, this.address, this.district, this.category, this.emergencyRoom, this.name, this.subdivision);
+        return sql;
+    }
+
     public String getTupleString() {
         String sql = String.format(
                 "(\"%s\",\"%s\"," +"\"%s\"," +

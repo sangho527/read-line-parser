@@ -13,14 +13,24 @@ public class Main {
         String filename = "C:\\Users\\PC\\Downloads\\seoul_hospital_infos.csv";
         List<Hospital> hospitals = hospitalFileController.readLines(filename);
 
-        System.out.println(hospitals.size());
-        List<String> lines = new ArrayList<>();
-        for (Hospital hospital : hospitals) {
-            lines.add(hospital.getSqlInsertQuery());
+        List<String> sqlStatements = new ArrayList<>();
+        for (Hospital hospital : hospitals){
+            sqlStatements.add(hospital.getSqlInsertQuery2());
         }
-        String sqlFilename = "hospital_insert.sql";
+        String sqlFilename = "seoul_hospital_insert.sql"; // 이 이름을 가진 sql 파일을 만들고
         hospitalFileController.createANewFile(sqlFilename);
-        hospitalFileController.writeLines(lines, sqlFilename);
+        hospitalFileController.writeLines(sqlStatements, sqlFilename); // 이 파일네임에 저장해라
+
+
+
+//        System.out.println(hospitals.size());
+//        List<String> lines = new ArrayList<>();
+//        for (Hospital hospital : hospitals) {
+//            lines.add(hospital.getSqlInsertQuery());
+//        }
+//        String sqlFilename = "hospital_insert.sql";
+//        hospitalFileController.createANewFile(sqlFilename);
+//        hospitalFileController.writeLines(lines, sqlFilename); // 10월 13일까지 진행과정
 
     }
 }
