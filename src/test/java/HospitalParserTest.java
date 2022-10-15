@@ -1,6 +1,6 @@
 import com.line.domain.Hospital;
 import com.line.parser.HospitalParser;
-import jdk.internal.misc.JavaNetHttpCookieAccess;
+//import jdk.internal.misc.JavaNetHttpCookieAccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
