@@ -23,6 +23,10 @@ public class UserDao {
         this.connectionMaker = new AwsConnectionMaker();
     }
 
+    public UserDao(ConnectionMaker connectionMaker) { // Constructor 오버로딩 connectionMaker를 바꿀 수 있게 여지를 준다.
+        this.connectionMaker = connectionMaker;
+    }
+
     public void add(User user) {
         Map<String, String> env = System.getenv();
         try {
