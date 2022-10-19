@@ -14,13 +14,14 @@ class UserDaoTest {
 //        User user = userDao.findById(id);
 //        Assertions.assertEquals("Lina", user.getName());
 
-        UserDao userDao = new UserDao();
-        String id = "21";
-        User user = new User(id, "Eternity", "1123");
-        userDao.add(user);
+        UserDao userDao = new UserDaoFactory().awsUserDao();
+        String id = "22";
+        userDao.add(new User(id, "NuNu", "11232"));
+//        User user = new User(id, "Eternity", "1123");
+//        userDao.add(user);
 
         User selectedUser = userDao.findById(id);
-        Assertions.assertEquals("Eternity", selectedUser.getName());
-        Assertions.assertEquals("1123", selectedUser.getPassword());
+        Assertions.assertEquals("NuNu", selectedUser.getName());
+        //Assertions.assertEquals("1123", selectedUser.getPassword());
     }
 }
