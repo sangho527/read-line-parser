@@ -1,22 +1,13 @@
 package com.dao;
 
+import com.connection.AwsConnectionMaker;
+import com.connection.ConnectionMaker;
 import com.domain.User;
 
 import java.sql.*;
 import java.util.Map;
 
 public class UserDao {
-
-    // AwsConnectionMaker awsConnectionMaker = new AwsConnectionMaker();
-
-//    private Connection makeConnection() throws SQLException { // 접근제어자 private
-//        Map<String, String> env = System.getenv();
-//            // DB접속 (ex sql workbeanch실행)
-//            Connection c = DriverManager.getConnection(env.get("DB_HOST"),
-//                    env.get("DB_USER"), env.get("DB_PASSWORD"));
-//            return c; //return Connection
-//    }
-
     private ConnectionMaker connectionMaker;
 
     public UserDao() {
@@ -27,11 +18,36 @@ public class UserDao {
         this.connectionMaker = connectionMaker;
     }
 
+    public void deleteAll() throws SQLException {
+        Connection c = null;
+        PreparedStatement pstmt;
+
+        c = connectionMaker.makeConnection();
+        pstmt = c.prepareStatement("DELETE From users");
+        pstmt.executeUpdate();
+        pstmt.close();
+        c.close();
+    }
+
+    public int getCount() throws SQLException{
+        Connection c = null;
+
+        PreparedStatement pstmt = c.prepareStatement("SELECT COUNT(*) from users");
+        ResultSet rs = pstmt.executeQuery();
+        rs.next();
+        int count = rs.getInt(1);
+
+        rs.close();
+        pstmt.close();
+        c.close();
+
+        return count;
+    }
+
     public void add(User user) {
         Map<String, String> env = System.getenv();
         try {
             // DB접속 (ex sql workbeanch실행)
-            //Connection c =makeConnection();
             Connection c =connectionMaker.makeConnection();
 
             // Query문 작성
