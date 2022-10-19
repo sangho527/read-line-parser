@@ -3,25 +3,26 @@ package com.dao;
 import com.domain.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = UserDaoFactory.class)
 
 class UserDaoTest {
 
+    @Autowired
+    ApplicationContext context;
+
     @Test
     void addAndSelect() {
-//        AWSUserDaoImpl userDao = new AWSUserDaoImpl(); // 리스코프치환의 법칙을지킴
-//        String id = "19";
-//        userDao.add(new User(id, "Lina", "12345"));
-//        User user = userDao.findById(id);
-//        Assertions.assertEquals("Lina", user.getName());
-
-        UserDao userDao = new UserDaoFactory().awsUserDao();
-        String id = "22";
-        userDao.add(new User(id, "NuNu", "11232"));
-//        User user = new User(id, "Eternity", "1123");
-//        userDao.add(user);
-
+        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
+        String id = "23";
+        userDao.add(new User(id, "Kim", "11232"));
         User selectedUser = userDao.findById(id);
-        Assertions.assertEquals("NuNu", selectedUser.getName());
-        //Assertions.assertEquals("1123", selectedUser.getPassword());
+        Assertions.assertEquals("Kim", selectedUser.getName());
     }
 }
