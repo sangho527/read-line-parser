@@ -8,10 +8,10 @@ public class LocalConnectionMaker implements ConnectionMaker{
     @Override
     public Connection makeConnection() throws SQLException {
             // DB접속 (ex sql workbeanch실행)
-            Connection c = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/likelion-db",
+            Connection l = DriverManager.getConnection(
+                    "jdbc:mysql://ec2-18-217-118-83.us-east-2.compute.amazonaws.com/likelion-db",
                     "root",
-                    "12345678");
-            return c; //return Connection
+                    "password");
+            return l; //return Connection
     }
 }

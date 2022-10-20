@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.Map;
 
 public class UserDao {
-    private ConnectionMaker connectionMaker;
+    private static ConnectionMaker connectionMaker;
 
     public UserDao() {
         this.connectionMaker = new AwsConnectionMaker();
@@ -19,18 +19,36 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException {
-        Connection c = null;
-        PreparedStatement pstmt;
+        PreparedStatement pstmt = null;
 
-        c = connectionMaker.makeConnection();
-        pstmt = c.prepareStatement("DELETE From users");
-        pstmt.executeUpdate();
-        pstmt.close();
-        c.close();
+        Connection c = null;
+        try {
+            c = connectionMaker.makeConnection();
+            pstmt = c.prepareStatement("DELETE From users");
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                }
+            }
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                }
+            }
+//        pstmt.executeUpdate();
+//        pstmt.close();
+//        c.close();
+        }
     }
 
-    public int getCount() throws SQLException{
-        Connection c = null;
+    public static int getCount() throws SQLException{
+        Connection c = connectionMaker.makeConnection();
 
         PreparedStatement pstmt = c.prepareStatement("SELECT COUNT(*) from users");
         ResultSet rs = pstmt.executeQuery();
