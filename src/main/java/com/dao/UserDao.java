@@ -3,6 +3,7 @@ package com.dao;
 import com.connection.AwsConnectionMaker;
 import com.connection.ConnectionMaker;
 import com.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.*;
 import java.util.Map;
@@ -20,11 +21,10 @@ public class UserDao {
 
     public void deleteAll() throws SQLException {
         PreparedStatement pstmt = null;
-
         Connection c = null;
         try {
             c = connectionMaker.makeConnection();
-            pstmt = c.prepareStatement("DELETE From users");
+            pstmt = new DeleteAllStrategy().makePreparedStatement(c);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -48,18 +48,38 @@ public class UserDao {
     }
 
     public static int getCount() throws SQLException{
-        Connection c = connectionMaker.makeConnection();
-
-        PreparedStatement pstmt = c.prepareStatement("SELECT COUNT(*) from users");
-        ResultSet rs = pstmt.executeQuery();
-        rs.next();
-        int count = rs.getInt(1);
-
-        rs.close();
-        pstmt.close();
-        c.close();
-
-        return count;
+        Connection c = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int count = 0;
+        try {
+            c = connectionMaker.makeConnection();
+            pstmt = c.prepareStatement("SELECT COUNT(*) from users");
+            rs = pstmt.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw e;
+        } finally {
+            if (rs != null){
+                try {
+                    rs.close();
+                } catch (SQLException e){
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                }
+            }
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                }
+            }
+        }
     }
 
     public void add(User user) {
@@ -98,13 +118,16 @@ public class UserDao {
 
             // Query문 실행
             ResultSet rs = pstmt.executeQuery();
-            rs.next();
-            User user = new User(rs.getString("id"), rs.getString("name"),
-                    rs.getString("password"));
-
+            User user = null;
+            if(rs.next()) {
+                user = new User(rs.getString("id"), rs.getString("name"),
+                        rs.getString("password"));
+            }
             rs.close();
             pstmt.close();
             c.close();
+
+            if (user == null) throw new EmptyResultDataAccessException(1);
 
             return user;
 

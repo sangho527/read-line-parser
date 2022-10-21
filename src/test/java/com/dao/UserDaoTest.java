@@ -3,16 +3,19 @@ package com.dao;
 import com.domain.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class) //Junit에서 Spring ApplicationContext를 쓸 수 있게 해주는 기능
 @ContextConfiguration(classes = UserDaoFactory.class) //Junit5 Test코드를 실행 할 때 ApplicationContext에 들어갈 설정정보(관계 설정)를 불러오게 해주는 기능
@@ -71,16 +74,33 @@ class UserDaoTest {
 
     @Test
     void addAndGet() throws SQLException {
-        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
         userDao.deleteAll();
-        assertEquals(0, userDao.getCount());
+        assertEquals(0,userDao.getCount());
+        userDao.add(user1);
+        assertEquals(1,userDao.getCount());
+        User user = userDao.findById(user1.getId());
 
-        String id = "1";
-        userDao.add(new User(id, "Kim", "1234"));
-        assertEquals(1, userDao.getCount());
-        User user = userDao.findById(id);
+        assertEquals(user1.getName(), user.getName());
+        assertEquals(user1.getPassword(), user.getPassword());
+//        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
+//        userDao.deleteAll();
+//        assertEquals(0, userDao.getCount());
+//
+//        String id = "1";
+//        userDao.add(new User(id, "Kim", "1234"));
+//        assertEquals(1, userDao.getCount());
+//        User user = userDao.findById(id);
+//
+//        assertEquals("Kim", user.getName());
+//        assertEquals("1234", user.getPassword());
+    }
 
-        assertEquals("Kim", user.getName());
-        assertEquals("1234", user.getPassword());
+    @Test
+    @DisplayName("User가 null인 경우 Exception")
+    void userNull(){
+        assertThrows(EmptyResultDataAccessException.class, ()->{
+            userDao.deleteAll();
+            userDao.findById("0");
+        });
     }
 }
