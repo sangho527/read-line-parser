@@ -19,15 +19,20 @@ public class UserDao {
         this.connectionMaker = connectionMaker;
     }
 
-    public void deleteAll() throws SQLException {
-        PreparedStatement pstmt = null;
+    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
         Connection c = null;
+        PreparedStatement pstmt = null;
+
         try {
+            // DB접속 (ex sql workbeanch실행)
             c = connectionMaker.makeConnection();
-            pstmt = new DeleteAllStrategy().makePreparedStatement(c);
+            pstmt = stmt.makeStatement(c);
+
+            // Query문 실행
             pstmt.executeUpdate();
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             if (pstmt != null) {
                 try {
@@ -41,11 +46,13 @@ public class UserDao {
                 } catch (SQLException e) {
                 }
             }
-//        pstmt.executeUpdate();
-//        pstmt.close();
-//        c.close();
         }
     }
+
+    public void deleteAll() throws SQLException {
+        jdbcContextWithStatementStrategy(new DeleteAllStrategy());
+    }
+
 
     public static int getCount() throws SQLException{
         Connection c = null;
@@ -82,27 +89,44 @@ public class UserDao {
         }
     }
 
-    public void add(User user) {
-        Map<String, String> env = System.getenv();
-        try {
-            // DB접속 (ex sql workbeanch실행)
-            Connection c =connectionMaker.makeConnection();
+    public void add(User user) throws SQLException {
 
-            // Query문 작성
-            PreparedStatement pstmt = c.prepareStatement("INSERT INTO users(id, name, password) VALUES(?,?,?);");
-            pstmt.setString(1, user.getId());
-            pstmt.setString(2, user.getName());
-            pstmt.setString(3, user.getPassword());
+        AddStrategy addStrategy = new AddStrategy(user);
+        jdbcContextWithStatementStrategy(addStrategy);
 
-            // Query문 실행
-            pstmt.executeUpdate();
 
-            pstmt.close();
-            c.close();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        Connection c = null;
+//        PreparedStatement pstmt = null;
+//
+//        try {
+//            // DB접속 (ex sql workbeanch실행)
+//            c = connectionMaker.makeConnection();
+//
+//            // Query문 작성
+//            pstmt = c.prepareStatement("INSERT INTO users(id, name, password) VALUES(?,?,?);");
+//            pstmt.setString(1, user.getId());
+//            pstmt.setString(2, user.getName());
+//            pstmt.setString(3, user.getPassword());
+//
+//            // Query문 실행
+//            pstmt.executeUpdate();
+//
+//        } catch (SQLException e) {
+//            throw e;
+//        } finally {
+//            if (pstmt != null) {
+//                try {
+//                    pstmt.close();
+//                } catch (SQLException e) {
+//                }
+//            }
+//            if (c != null) {
+//                try {
+//                    c.close();
+//                } catch (SQLException e) {
+//                }
+//            }
+//        }
     }
 
     public User findById(String id) { //select
