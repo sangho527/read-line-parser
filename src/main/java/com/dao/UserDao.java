@@ -1,169 +1,74 @@
 package com.dao;
 
-import com.connection.AwsConnectionMaker;
-import com.connection.ConnectionMaker;
 import com.domain.User;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 
+import javax.sql.DataSource;
+import javax.xml.crypto.Data;
 import java.sql.*;
+import java.util.EmptyStackException;
+import java.util.List;
 import java.util.Map;
 
 public class UserDao {
-    private static ConnectionMaker connectionMaker;
+    //ConnectonMaker connectonMaker;
+    //public UserDao(){this.connectonMaker=new AwsConnectionMaker();}
+    //public UserDao(ConnectonMaker connectonMaker){this.connectonMaker=connectonMaker;}
+    private DataSource dataSource;
+    private JdbcContext jdbcContext;
 
-    public UserDao() {
-        this.connectionMaker = new AwsConnectionMaker();
-    }
+    private JdbcTemplate jdbcTemplate;
+    public UserDao(DataSource dataSource){this.jdbcTemplate=new JdbcTemplate(dataSource);}
 
-    public UserDao(ConnectionMaker connectionMaker) { // Constructor 오버로딩 connectionMaker를 바꿀 수 있게 여지를 준다.
-        this.connectionMaker = connectionMaker;
-    }
-
-    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
-        Connection c = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            // DB접속 (ex sql workbeanch실행)
-            c = connectionMaker.makeConnection();
-            pstmt = stmt.makeStatement(c);
-
-            // Query문 실행
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            throw e;
-        } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                }
-            }
-            if (c != null) {
-                try {
-                    c.close();
-                } catch (SQLException e) {
-                }
-            }
+    public RowMapper<User> rowMapper=new RowMapper<User>() {
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user=new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+            return user;
         }
+    };
+    public void setDataSource(DataSource dataSource){
+        this.jdbcTemplate=new JdbcTemplate(dataSource);
+
+        this.dataSource=dataSource;
     }
+    public void setJdbcContext(JdbcContext jdbcContext){
+        this.jdbcContext=jdbcContext;
+    }
+
 
     public void deleteAll() throws SQLException {
-        jdbcContextWithStatementStrategy(new DeleteAllStrategy());
+        //this.jdbcContext.executeSql("delete from users");
+        this.jdbcTemplate.update("delete from users");
+    }
+    public int getCount(){
+        return this.jdbcTemplate.queryForObject("select count(*) from users;", Integer.class);
+    }
+    public void add(final User user) throws SQLException {
+        /*
+        this.jdbcContext.workWithStatementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                PreparedStatement ps=c.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
+                ps.setString(1, user.getId());
+                ps.setString(2, user.getName());
+                ps.setString(3, user.getPassword());
+                return ps;
+            }
+        });*/
+        this.jdbcTemplate.update("Insert into users(id, name, password) values (?, ?, ?)",
+                user.getId(), user.getName(), user.getPassword());
+
     }
 
-
-    public static int getCount() throws SQLException{
-        Connection c = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        int count = 0;
-        try {
-            c = connectionMaker.makeConnection();
-            pstmt = c.prepareStatement("SELECT COUNT(*) from users");
-            rs = pstmt.executeQuery();
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException e) {
-            throw e;
-        } finally {
-            if (rs != null){
-                try {
-                    rs.close();
-                } catch (SQLException e){
-                }
-            }
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                }
-            }
-            if (c != null) {
-                try {
-                    c.close();
-                } catch (SQLException e) {
-                }
-            }
-        }
+    public User getById(String id) {
+        return this.jdbcTemplate.queryForObject("select * from users where id=?", rowMapper, id);
     }
 
-    public void add(User user) throws SQLException {
-
-        AddStrategy addStrategy = new AddStrategy(user);
-        jdbcContextWithStatementStrategy(addStrategy);
-
-
-//        Connection c = null;
-//        PreparedStatement pstmt = null;
-//
-//        try {
-//            // DB접속 (ex sql workbeanch실행)
-//            c = connectionMaker.makeConnection();
-//
-//            // Query문 작성
-//            pstmt = c.prepareStatement("INSERT INTO users(id, name, password) VALUES(?,?,?);");
-//            pstmt.setString(1, user.getId());
-//            pstmt.setString(2, user.getName());
-//            pstmt.setString(3, user.getPassword());
-//
-//            // Query문 실행
-//            pstmt.executeUpdate();
-//
-//        } catch (SQLException e) {
-//            throw e;
-//        } finally {
-//            if (pstmt != null) {
-//                try {
-//                    pstmt.close();
-//                } catch (SQLException e) {
-//                }
-//            }
-//            if (c != null) {
-//                try {
-//                    c.close();
-//                } catch (SQLException e) {
-//                }
-//            }
-//        }
-    }
-
-    public User findById(String id) { //select
-        Map<String, String> env = System.getenv();
-        Connection c; // 여기에도 connection 적용
-        try {
-            // DB접속 (ex sql workbeanch실행)
-            c = connectionMaker.makeConnection();
-
-            // Query문 작성
-            PreparedStatement pstmt = c.prepareStatement("SELECT * FROM users WHERE id = ?");
-            pstmt.setString(1, id);
-
-            // Query문 실행
-            ResultSet rs = pstmt.executeQuery();
-            User user = null;
-            if(rs.next()) {
-                user = new User(rs.getString("id"), rs.getString("name"),
-                        rs.getString("password"));
-            }
-            rs.close();
-            pstmt.close();
-            c.close();
-
-            if (user == null) throw new EmptyResultDataAccessException(1);
-
-            return user;
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void main(String[] args) {
-        UserDao userDao = new UserDao();
-//        userDao.add();
-        User user = userDao.findById("6");
-        System.out.println(user.getName());
+    public List<User> getAll(){
+        return this.jdbcTemplate.query("select * from users order by id", rowMapper);
     }
 }

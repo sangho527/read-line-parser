@@ -13,94 +13,75 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class) //Junit에서 Spring ApplicationContext를 쓸 수 있게 해주는 기능
-@ContextConfiguration(classes = UserDaoFactory.class) //Junit5 Test코드를 실행 할 때 ApplicationContext에 들어갈 설정정보(관계 설정)를 불러오게 해주는 기능
-
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = UserDaoFactory.class)
 class UserDaoTest {
-
     @Autowired
     ApplicationContext context;
+
     UserDao userDao;
+
     User user1;
     User user2;
     User user3;
 
     @BeforeEach
-    void Setup() {
-        userDao = context.getBean("awsUserDao", UserDao.class);
-        user1 = new User("1" , "Sang", "1323");
-        user2 = new User("2" , "ho", "13233");
-        user3 = new User("3" , "Sing", "1323");
+    void setup(){
+        userDao=context.getBean("awsUserDao", UserDao.class);
+        user1=new User("1", "Sangho", "1234");
+        user2=new User("2", "joon", "1234");
+        user3=new User("3", "geonwoo", "1234");
     }
-
     @Test
-    void addAndSelect() {
-        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
-        UserDao userDao2 = context.getBean("awsUserDao", UserDao.class);
-
-        System.out.println(userDao);
-        System.out.println(userDao2);
-
-        String id = "27";
-        userDao.add(new User(id, "Kim", "11232"));
-
-        User selectedUser = userDao.findById(id);
-        assertEquals("Kim", selectedUser.getName());
-    }
-
-    @Test
-    void count() throws SQLException {
-
-        User user1 = new User("1", "geonwoo", "1131");
-        User user2 = new User("2", "joon", "0628");
-        User user3 = new User("3", "hyunmeen", "0312");
-
-        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
+    @DisplayName("insert 확인")
+    public void addAndGet() throws SQLException {
         userDao.deleteAll();
         assertEquals(0, userDao.getCount());
-
         userDao.add(user1);
-        assertEquals(1, UserDao.getCount());
+        User user=userDao.getById("1");
+        assertEquals("Sangho", user1.getName());
+        assertEquals(1, userDao.getCount());
+
         userDao.add(user2);
-        assertEquals(2, UserDao.getCount());
+        user=userDao.getById("2");
+        assertEquals("joon", user2.getName());
+        assertEquals(2, userDao.getCount());
+
         userDao.add(user3);
-        assertEquals(3, UserDao.getCount());
-
+        user=userDao.getById("3");
+        assertEquals("geonwoo", user3.getName());
+        assertEquals(3, userDao.getCount());
     }
-
     @Test
-    void addAndGet() throws SQLException {
+    @DisplayName("deleteAll getCount 테스트")
+    public void deleteAllTeat() throws SQLException {
         userDao.deleteAll();
-        assertEquals(0,userDao.getCount());
-        userDao.add(user1);
-        assertEquals(1,userDao.getCount());
-        User user = userDao.findById(user1.getId());
-
-        assertEquals(user1.getName(), user.getName());
-        assertEquals(user1.getPassword(), user.getPassword());
-//        UserDao userDao = context.getBean("awsUserDao", UserDao.class);
-//        userDao.deleteAll();
-//        assertEquals(0, userDao.getCount());
-//
-//        String id = "1";
-//        userDao.add(new User(id, "Kim", "1234"));
-//        assertEquals(1, userDao.getCount());
-//        User user = userDao.findById(id);
-//
-//        assertEquals("Kim", user.getName());
-//        assertEquals("1234", user.getPassword());
+        assertEquals(0, userDao.getCount());
     }
-
     @Test
-    @DisplayName("User가 null인 경우 Exception")
-    void userNull(){
+    @DisplayName("getAll 테스트")
+    public void getAllTest() throws SQLException {
+        userDao.deleteAll();
+        List<User> users=new ArrayList<>();
+        assertEquals(0, userDao.getCount());
+        userDao.add(user1);
+        userDao.add(user2);
+        userDao.add(user3);
+        assertEquals(3, userDao.getCount());
+        users=userDao.getAll();
+        assertEquals(3, users.size());
+    }
+    @Test
+    void getById(){
         assertThrows(EmptyResultDataAccessException.class, ()->{
-            userDao.deleteAll();
-            userDao.findById("0");
+            userDao.getById("20");
         });
     }
+
+
 }
